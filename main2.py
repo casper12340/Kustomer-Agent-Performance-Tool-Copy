@@ -48,12 +48,14 @@ def request_retry(method: str, url: str, **kw):
 
 def paginated_search(body: dict):
     """POST /v1/customers/search paging with ?page=N&pageSize=…"""
-    page = 1
+    # The Kustomer search API is zero-indexed. Start at page=0 to avoid
+    # requesting a page beyond the available range which would yield a 400.
+    page = 0
     while True:
         url = f"{BASE_URL}/v1/customers/search?page={page}&pageSize={PAGE_SIZE}"
         data = request_retry("POST", url, json=body, headers=HEADERS).json()
         yield from data.get("data", [])
-        if page >= data.get("meta", {}).get("totalPages", 1):
+        if page >= data.get("meta", {}).get("totalPages", 1) - 1:
             break
         page += 1
 
