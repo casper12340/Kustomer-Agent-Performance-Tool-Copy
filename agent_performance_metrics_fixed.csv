@@ -1,56 +1,6 @@
-Agent,Messages sent,Unique conversations messaged,Conversations marked done,Unique customers messaged,Average conversation handle time (s),Average sent messages per conversation,Average sent messages per customer,First contact resolution rate (%),Average first response time (s),Median first response time (s),Average time to first resolution (s),Median time to first resolution (s),Messages sent with shortcuts,Percent of messages sent with shortcuts (%)
-API Key WhatsApp automation,423,275,0,261,0,1.54,1.62,0,0,0,0,0,0,0.0
-WhatsApp n8n Assistant,5075,854,0,687,0,5.94,7.39,0,0,0,0,0,0,0.0
-Caroll-Ann Karsodimedjo,1407,639,0,621,0,2.2,2.27,0,0,0,0,0,0,0.0
-Roshni Gauri,1331,609,0,589,0,2.19,2.26,0,0,0,0,0,0,0.0
-Dewi Migchels,120,102,0,93,0,1.18,1.29,0,0,0,0,0,0,0.0
-Sophie Nagtzaam,441,363,0,356,0,1.21,1.24,0,0,0,0,0,0,0.0
-Send WhatsApp Template,6185,6175,0,3854,0,1.0,1.6,0,0,0,0,0,0,0.0
-Charissa Paymans,305,239,0,235,0,1.28,1.3,0,0,0,0,0,0,0.0
-Cheveley de Noten,1103,389,0,375,0,2.84,2.94,0,0,0,0,0,0,0.0
-Nieuwe WhatsApp My Jewellery Digital Assistant,863,186,0,176,0,4.64,4.9,0,0,0,0,0,0,0.0
-Sue-Ellen Janssen,1106,415,0,401,0,2.67,2.76,0,0,0,0,0,0,0.0
-Romelsa Plein,392,207,0,204,0,1.89,1.92,0,0,0,0,0,0,0.0
-Nikka Vujica,232,191,0,187,0,1.21,1.24,0,0,0,0,0,0,0.0
-Zoë Rebsch,233,164,0,161,0,1.42,1.45,0,0,0,0,0,0,0.0
-Samara Zeeuw,149,113,0,112,0,1.32,1.33,0,0,0,0,0,0,0.0
-Romy de Klerk,189,155,0,155,0,1.22,1.22,0,0,0,0,0,0,0.0
-Anouk van Raay,9,6,0,6,0,1.5,1.5,0,0,0,0,0,0,0.0
-Britt Caniels,110,98,0,98,0,1.12,1.12,0,0,0,0,0,0,0.0
-Carolijn Hanneman,348,234,0,230,0,1.49,1.51,0,0,0,0,0,0,0.0
-My Jewellery Digital Assistant,123,16,0,11,0,7.69,11.18,0,0,0,0,0,0,0.0
-Raiesa Edwards,222,110,0,110,0,2.02,2.02,0,0,0,0,0,0,0.0
-WhatsApp OpenAI Assistant,3766,609,0,513,0,6.18,7.34,0,0,0,0,0,0,0.0
-Laila Eillioth,1165,441,0,430,0,2.64,2.71,0,0,0,0,0,0,0.0
-6261818d8f62c01df3323932,11,2,0,2,0,5.5,5.5,0,0,0,0,0,0,0.0
-6261818dfeaa38b372a21093,9,4,0,3,0,2.25,3.0,0,0,0,0,0,0,0.0
-642541796649c783428b6b25,5,2,0,2,0,2.5,2.5,0,0,0,0,0,0,0.0
-6261818dcc8a69412486a199,2,2,0,2,0,1.0,1.0,0,0,0,0,0,0,0.0
-6261818dfeaa3836c4a210d1,12,8,0,7,0,1.5,1.71,0,0,0,0,0,0,0.0
-62c4089728a37f64a3726456,2,2,0,2,0,1.0,1.0,0,0,0,0,0,0,0.0
-63ce5dbdba050d6e3c00ac7d,3,2,0,2,0,1.5,1.5,0,0,0,0,0,0,0.0
-6261818dcc8a69761486a1c4,1,1,0,1,0,1.0,1.0,0,0,0,0,0,0,0.0
-6261818dfeaa387580a210f0,2,2,0,2,0,1.0,1.0,0,0,0,0,0,0,0.0
-Anne de Vries,60,59,0,59,0,1.02,1.02,0,0,0,0,0,0,0.0
-62a2038520fc74d70bb61fa6,1,1,0,1,0,1.0,1.0,0,0,0,0,0,0,0.0
-6374affbfc76f63c562b06dd,10,5,0,5,0,2.0,2.0,0,0,0,0,0,0,0.0
-Valerie Doelasan,693,324,0,317,0,2.14,2.19,0,0,0,0,0,0,0.0
-Create Note API,97,97,0,97,0,1.0,1.0,0,0,0,0,0,0,0.0
-Jans van Beckhoven,87,79,0,78,0,1.1,1.12,0,0,0,0,0,0,0.0
-Anniek Rijnsburger,210,134,0,130,0,1.57,1.62,0,0,0,0,0,0,0.0
-65095681347c672c7ccc8879,3,2,0,2,0,1.5,1.5,0,0,0,0,0,0,0.0
-Julie Hofkens,189,129,0,129,0,1.47,1.47,0,0,0,0,0,0,0.0
-6319ead23d01070aeed13dee,9,4,0,4,0,2.25,2.25,0,0,0,0,0,0,0.0
-66c45681824134944d706f67,5,2,0,2,0,2.5,2.5,0,0,0,0,0,0,0.0
-Object Selector Chatbot,5,5,0,3,0,1.0,1.67,0,0,0,0,0,0,0.0
-66c456b4e8f1d270dd709291,6,1,0,1,0,6.0,6.0,0,0,0,0,0,0,0.0
-Jaimy Schuurmans,4,4,0,4,0,1.0,1.0,0,0,0,0,0,0,0.0
-6696c31ef54cae92e1ec4dd8,2,1,0,1,0,2.0,2.0,0,0,0,0,0,0,0.0
-6261818d8f62c0656b323977,1,1,0,1,0,1.0,1.0,0,0,0,0,0,0,0.0
-66c456eac52ca72123704e03,3,1,0,1,0,3.0,3.0,0,0,0,0,0,0,0.0
-660e6b9fe5f9d5312a2a5986,1,1,0,1,0,1.0,1.0,0,0,0,0,0,0,0.0
-6745d83398add9889acad030,2,2,0,2,0,1.0,1.0,0,0,0,0,0,0,0.0
-6261818d8f62c075a632393d,5,2,0,2,0,2.5,2.5,0,0,0,0,0,0,0.0
-6261818da12a45ea486e92a3,3,1,0,1,0,3.0,3.0,0,0,0,0,0,0,0.0
-63285a12ac9ed89f9b71c03d,1,1,0,1,0,1.0,1.0,0,0,0,0,0,0,0.0
-62bed8e05e4310e030523dd1,1,1,0,1,0,1.0,1.0,0,0,0,0,0,0,0.0
+Agent,Messages sent,Unique conversations messaged,Conversations marked done,Unique customers messaged,Average conversation handle time (s),Average sent messages per conversation,Average sent messages per customer,First contact resolution rate (%),Average response time (s),Average first response time (s),Median first response time (s),Average time to first resolution (s),Median time to first resolution (s),Total time logged in (s),Messages sent with shortcuts,Percent of messages sent with shortcuts (%)
+Britt Caniels,53,46,0,46,0,1.15,1.15,0,4026920.57,0,0,0,0,0.0,0,0.0
+Sue-Ellen Janssen,186,53,0,53,0,3.51,3.51,0,3008422.84,0,0,0,0,0.0,0,0.0
+Roshni Gauri,160,52,0,52,0,3.08,3.08,0,2415797.31,0,0,0,0,0.0,0,0.0
+Carolijn Hanneman,126,89,0,89,0,1.42,1.42,0,10648393.98,0,0,0,0,0.0,0,0.0
+Caroll-Ann Karsodimedjo,81,46,0,46,0,1.76,1.76,0,4557335.49,0,0,0,0,0.0,0,0.0

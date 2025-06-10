@@ -22,7 +22,7 @@ KUSTOMER_API_KEY   = os.getenv('KUSTOMER_API_KEY')
 
 BASE_URL  = "https://my-jewellery.api.kustomerapp.com"
 START_DATE = "2025-06-01"              # inclusive
-END_DATE   = "2025-06-03"              # inclusive
+END_DATE   = "2025-06-01"              # inclusive
 PAGE_SIZE  = 1000
 MAX_RETRIES = 4
 
@@ -60,26 +60,54 @@ def paginated_search(body: dict):
         data = request_retry("POST", url, json=body, headers=HEADERS).json()
         yield from data.get("data", [])
         total_pages = data.get("meta", {}).get("totalPages", total_pages)
+        print("Total pages", total_pages)
         page += 1
 
+from copy import deepcopy
+from datetime import datetime, timedelta
+
 def search_by_day(base_body: dict, field: str):
-    """Split the search into per-day chunks to avoid large page counts."""
+    """Split the search into per-day 12-hour chunks to avoid large page counts."""
     results = []
     start = datetime.strptime(START_DATE, "%Y-%m-%d")
     end = datetime.strptime(END_DATE, "%Y-%m-%d")
     day = timedelta(days=1)
+
     while start <= end:
-        day_start = f"{start.strftime('%Y-%m-%d')}T00:00:00Z"
-        day_end = f"{start.strftime('%Y-%m-%d')}T23:59:59Z"
-        body = deepcopy(base_body)
-        body["and"] = [
-            {field: {"gte": day_start}},
-            {field: {"lte": day_end}},
+        day_str = start.strftime('%Y-%m-%d')
+
+        # First half of the day
+        first_half_start = f"{day_str}T00:00:00Z"
+        first_half_end = f"{day_str}T11:59:59Z"
+        print(f"First half: {first_half_start} → {first_half_end}")
+        
+        body1 = deepcopy(base_body)
+        body1["and"] = [
+            {field: {"gte": first_half_start}},
+            {field: {"lte": first_half_end}},
             *[c for c in base_body.get("and", []) if field not in c],
         ]
-        results.extend(paginated_search(body))
+        results.extend(paginated_search(body1))
+
+        # Second half of the day
+        second_half_start = f"{day_str}T12:00:00Z"
+        second_half_end = f"{day_str}T23:59:59Z"
+        print(f"Second half: {second_half_start} → {second_half_end}")
+
+        body2 = deepcopy(base_body)
+        body2["and"] = [
+            {field: {"gte": second_half_start}},
+            {field: {"lte": second_half_end}},
+            *[c for c in base_body.get("and", []) if field not in c],
+        ]
+        results.extend(paginated_search(body2))
+
+        # Volgende dag
         start += day
+        print(day)
+
     return results
+
 
 def dt(ts: str) -> datetime:  # quick ISO-8601 → datetime helper
     return datetime.strptime(ts.rstrip("Z"), "%Y-%m-%dT%H:%M:%S")
@@ -105,61 +133,61 @@ print(f"✔ {len(user_map):,} human agents loaded")
 # ─────────────── 1) MESSAGES (outbound only) ───────────────────────────
 msg_body = {
     "and": [
-        {"createdAt": {"gte": start_iso}},
-        {"createdAt": {"lte": end_iso}},
-        {"auto": {"equals": False}},
+        {"message_created_at": {"gte": start_iso}},
+        {"message_created_at": {"lte": end_iso}},
+        {"auto": {"equals": "False"}},
         {"direction": {"equals": "out"}},
     ],
-    "sort": [{"createdAt": "asc"}],
+    "sort": [{"message_created_at": "asc"}],
     "queryContext": "message",
     "timeZone": "Europe/Amsterdam",
 }
 print("Fetching outbound messages …")
-messages = search_by_day(msg_body, "createdAt")
+messages = search_by_day(msg_body, "message_created_at")
 print(f"✔ {len(messages):,} messages")
 
 # ─────────────── 2) CONVERSATIONS (created & done) ─────────────────────
 conv_created_body = {
     "and": [
-        {"createdAt": {"gte": start_iso}},
-        {"createdAt": {"lte": end_iso}},
+        {"conversation_created_at": {"gte": start_iso}},
+        {"conversation_created_at": {"lte": end_iso}},
     ],
-    "sort": [{"createdAt": "asc"}],
+    "sort": [{"conversation_created_at": "asc"}],
     "queryContext": "conversation",
     "timeZone": "Europe/Amsterdam",
 }
 conv_done_body = {
     "and": [
-        {"lastDoneAt": {"gte": start_iso}},
-        {"lastDoneAt": {"lte": end_iso}},
+        {"conversation_last_done_created_at": {"gte": start_iso}},
+        {"conversation_last_done_created_at": {"lte": end_iso}},
         {"deleted": {"equals": False}},
-        {"messageCount": {"gt": 0}},
+        {"conversation_message_count": {"gt": 0}},
     ],
-    "sort": [{"lastDoneAt": "asc"}],
+    "sort": [{"conversation_last_done_created_at": "asc"}],
     "queryContext": "conversation",
     "timeZone": "Europe/Amsterdam",
 }
 
 print("Fetching conversations (created) …")
-conv_created = search_by_day(conv_created_body, "createdAt")
+conv_created = search_by_day(conv_created_body, "conversation_created_at")
 print("Fetching conversations (done) …")
-conv_done = search_by_day(conv_done_body, "lastDoneAt")
+conv_done = search_by_day(conv_done_body, "conversation_last_done_created_at")
 
 conv_lookup = {c["id"]: c for c in conv_created + conv_done}
 
 # ─────────────── 3) USER TIME (logged in) ──────────────────────────────
-user_time_body = {
-    "and": [
-        {"docAt": {"gte": start_iso}},
-        {"docAt": {"lte": end_iso}},
-    ],
-    "sort": [{"docAt": "asc"}],
-    "queryContext": "userTime",
-    "timeZone": "Europe/Amsterdam",
-}
-print("Fetching user time …")
-user_times = search_by_day(user_time_body, "docAt")
-print(f"✔ {len(user_times):,} user time entries")
+# user_time_body = {
+#     "and": [
+#         {"docAt": {"gte": start_iso}},
+#         {"docAt": {"lte": end_iso}},
+#     ],
+#     "sort": [{"docAt": "asc"}],
+#     "queryContext": "userTime",
+#     "timeZone": "Europe/Amsterdam",
+# }
+# print("Fetching user time …")
+# user_times = search_by_day(user_time_body, "docAt")
+# print(f"✔ {len(user_times):,} user time entries")
 
 # ─────────────── METRIC BUCKETS ────────────────────────────────────────
 stats = defaultdict(lambda: {
@@ -264,14 +292,14 @@ for c in conv_created:
             pass
 
 # ───── Logged-in time ─────────────────────────────────────────────────
-for ut in user_times:
-    uid = (ut.get("userId") or
-           ut.get("relationships", {}).get("user", {}).get("data", {}).get("id"))
-    if uid not in user_map:
-        continue
-    logged = ut.get("loggedIn", {}).get("timeTotal")
-    if isinstance(logged, (int, float)):
-        stats[uid]["login"] += logged
+# for ut in user_times:
+#     uid = (ut.get("userId") or
+#            ut.get("relationships", {}).get("user", {}).get("data", {}).get("id"))
+#     if uid not in user_map:
+#         continue
+#     logged = ut.get("loggedIn", {}).get("timeTotal")
+#     if isinstance(logged, (int, float)):
+#         stats[uid]["login"] += logged
 
 # ─────────────── EXPORT CSV ────────────────────────────────────────────
 print("Writing CSV …")
@@ -298,6 +326,7 @@ with open("agent_performance_metrics_fixed.csv", "w", newline="", encoding="utf-
     ])
 
     for aid, s in stats.items():
+        print(aid, s)
         conv_ct = len(s["conv"])
         cust_ct = len(s["cust"])
         wr = [
