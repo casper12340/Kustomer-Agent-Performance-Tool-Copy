@@ -83,6 +83,7 @@ msg_body = {
     "and": [
         {"createdAt": {"gte": start_iso}},
         {"createdAt": {"lte": end_iso}},
+        {"auto": {"equals": False}},
         {"direction": {"equals": "out"}},
     ],
     "sort": [{"createdAt": "asc"}],
@@ -107,6 +108,8 @@ conv_done_body = {
     "and": [
         {"lastDoneAt": {"gte": start_iso}},
         {"lastDoneAt": {"lte": end_iso}},
+        {"deleted": {"equals": False}},
+        {"messageCount": {"gt": 0}},
     ],
     "sort": [{"lastDoneAt": "asc"}],
     "queryContext": "conversation",
@@ -120,17 +123,43 @@ conv_done = list(paginated_search(conv_done_body))
 
 conv_lookup = {c["id"]: c for c in conv_created + conv_done}
 
+# ─────────────── 3) USER TIME (logged in) ──────────────────────────────
+user_time_body = {
+    "and": [
+        {"docAt": {"gte": start_iso}},
+        {"docAt": {"lte": end_iso}},
+    ],
+    "sort": [{"docAt": "asc"}],
+    "queryContext": "userTime",
+    "timeZone": "Europe/Amsterdam",
+}
+print("Fetching user time …")
+user_times = list(paginated_search(user_time_body))
+print(f"✔ {len(user_times):,} user time entries")
+
 # ─────────────── METRIC BUCKETS ────────────────────────────────────────
 stats = defaultdict(lambda: {
-    "msgs": 0, "conv": set(), "cust": set(),
-    "conv_done": 0, "conv_created_done": 0,
+    "msgs": 0,
+    "conv": set(),
+    "cust": set(),
+    "conv_done": 0,
     "handle_sum": 0.0,
-    "frt": [], "fr_res": [],
-    "shortcuts": 0, "fcr": 0,
+    "resp": [],
+    "frt": [],
+    "fr_res": [],
+    "shortcuts": 0,
+    "fcr_hits": 0,
+    "fcr_total": 0,
+    "login": 0.0,
 })
 
 # ───── Count every outbound message ────────────────────────────────────
 for m in messages:
+    direction = m.get("direction") or m.get("attributes", {}).get("direction")
+    auto = m.get("auto") if "auto" in m else m.get("attributes", {}).get("auto")
+    if direction != "out" or auto:
+        continue
+
     agent = (m.get("relationships", {})
                .get("createdBy", {})
                .get("data", {})
@@ -149,42 +178,76 @@ for m in messages:
         if cust:
             s["cust"].add(cust)
 
+    resp_bt = (m.get("responseBusinessTime") or
+               m.get("attributes", {}).get("responseBusinessTime"))
+    if isinstance(resp_bt, (int, float)):
+        s["resp"].append(resp_bt)
+
     if m.get("attributes", {}).get("shortcutIds"):
         s["shortcuts"] += 1
 
 # ───── Conversation completions / handle-time ──────────────────────────
-created_ids = {c["id"] for c in conv_created}
 for c in conv_done:
+    if c.get("deleted"):
+        continue
+    if c.get("messageCount", 0) <= 0:
+        continue
+
     agent = c.get("lastDoneById")
     if agent not in user_map:
         continue
     s = stats[agent]
     s["conv_done"] += 1
-    if c["id"] in created_ids:
-        s["conv_created_done"] += 1
     if h := c.get("handleTime"):
         s["handle_sum"] += h
+
+    fd_at = c.get("firstDoneAt")
+    fd_by = c.get("firstDoneById")
+    if fd_at and fd_by in user_map:
+        if start_iso <= fd_at <= end_iso:
+            sf = stats[fd_by]
+            sf["fcr_total"] += 1
+            if (
+                c.get("status") == "done" and
+                c.get("direction") == "in" and
+                c.get("messageCount", 0) > 0 and
+                c.get("reopenCount", 0) <= 0 and
+                not c.get("mergedTarget")
+            ):
+                sf["fcr_hits"] += 1
+            if c.get("createdAt"):
+                try:
+                    fres = (dt(fd_at) - dt(c["createdAt"])).total_seconds()
+                    sf["fr_res"].append(fres)
+                except Exception:
+                    pass
 
 # ───── First response & resolution ­times ──────────────────────────────
 for c in conv_created:
     cid = c["id"]
-    conv_msgs = [m for m in messages if m.get("conversationId") == cid]
+    conv_msgs = [m for m in messages if (m.get("conversationId") or m.get("relationships", {}).get("conversation", {}).get("data", {}).get("id")) == cid]
     if not conv_msgs:
         continue
-    conv_msgs.sort(key=lambda x: x["attributes"]["createdAt"])
+    conv_msgs.sort(key=lambda x: x.get("attributes", {}).get("createdAt") or x.get("createdAt"))
 
-    first_cust = next((m for m in conv_msgs if m["direction"] == "in"), None)
-    first_agent = next((m for m in conv_msgs if m["direction"] == "out"), None)
+    first_cust = next((m for m in conv_msgs if (m.get("direction") or m.get("attributes", {}).get("direction")) == "in"), None)
+    first_agent = next((m for m in conv_msgs if (m.get("direction") or m.get("attributes", {}).get("direction")) == "out" and not (m.get("auto") if "auto" in m else m.get("attributes", {}).get("auto"))), None)
     if first_cust and first_agent:
-        frt = (dt(first_agent["createdAt"]) - dt(first_cust["createdAt"])).total_seconds()
-        stats[first_agent["createdById"]]["frt"].append(frt)
+        try:
+            frt = (dt(first_agent.get("createdAt") or first_agent["attributes"]["createdAt"]) - dt(first_cust.get("createdAt") or first_cust["attributes"]["createdAt"])).total_seconds()
+            stats[first_agent.get("createdById")]["frt"].append(frt)
+        except Exception:
+            pass
 
-    if c.get("firstDoneAt") and c.get("firstDoneById") in user_map:
-        fres = (dt(c["firstDoneAt"]) - dt(c["createdAt"])).total_seconds()
-        s = stats[c["firstDoneById"]]
-        s["fr_res"].append(fres)
-        if c.get("firstDoneAt") == c.get("lastDoneAt"):
-            s["fcr"] += 1
+# ───── Logged-in time ─────────────────────────────────────────────────
+for ut in user_times:
+    uid = (ut.get("userId") or
+           ut.get("relationships", {}).get("user", {}).get("data", {}).get("id"))
+    if uid not in user_map:
+        continue
+    logged = ut.get("loggedIn", {}).get("timeTotal")
+    if isinstance(logged, (int, float)):
+        stats[uid]["login"] += logged
 
 # ─────────────── EXPORT CSV ────────────────────────────────────────────
 print("Writing CSV …")
@@ -200,10 +263,12 @@ with open("agent_performance_metrics_fixed.csv", "w", newline="", encoding="utf-
         "Average sent messages per conversation",
         "Average sent messages per customer",
         "First contact resolution rate (%)",
+        "Average response time (s)",
         "Average first response time (s)",
         "Median first response time (s)",
         "Average time to first resolution (s)",
         "Median time to first resolution (s)",
+        "Total time logged in (s)",
         "Messages sent with shortcuts",
         "Percent of messages sent with shortcuts (%)",
     ])
@@ -220,11 +285,13 @@ with open("agent_performance_metrics_fixed.csv", "w", newline="", encoding="utf-
             round(s["handle_sum"] / s["conv_done"], 2) if s["conv_done"] else 0,
             round(s["msgs"] / conv_ct, 2) if conv_ct else 0,
             round(s["msgs"] / cust_ct, 2) if cust_ct else 0,
-            round(s["fcr"] / s["conv_created_done"] * 100, 2) if s["conv_created_done"] else 0,
+            round(s["fcr_hits"] / s["fcr_total"] * 100, 2) if s["fcr_total"] else 0,
+            round(mean(s["resp"]), 2) if s["resp"] else 0,
             round(mean(s["frt"]), 2) if s["frt"] else 0,
             round(median(s["frt"]), 2) if s["frt"] else 0,
             round(mean(s["fr_res"]), 2) if s["fr_res"] else 0,
             round(median(s["fr_res"]), 2) if s["fr_res"] else 0,
+            round(s["login"], 2),
             s["shortcuts"],
             round(s["shortcuts"] / s["msgs"] * 100, 2) if s["msgs"] else 0,
         ]
