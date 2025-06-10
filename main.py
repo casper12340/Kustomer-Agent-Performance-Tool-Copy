@@ -4,9 +4,13 @@ import csv
 from datetime import datetime
 from statistics import mean, median
 import requests
+import os
+from dotenv import load_dotenv
 
-# Configuration: API key and date range (inclusive)
-API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3Nzk0NzRlOWZhNmM2ZGE5ZDJlZDAxZCIsInVzZXIiOiI2Nzc5NDc0ZDEwMGMzZmE2MDYzNTZiODIiLCJvcmciOiI2MWNiMTg4ZTMzYTlhZTA3MWVlMDZiOGUiLCJvcmdOYW1lIjoibXktamV3ZWxsZXJ5IiwidXNlclR5cGUiOiJtYWNoaW5lIiwicG9kIjoicHJvZDIiLCJyb2xlcyI6WyJvcmcuYWRtaW4iLCJvcmcudXNlciJdLCJhdWQiOiJ1cm46Y29uc3VtZXIiLCJpc3MiOiJ1cm46YXBpIiwic3ViIjoiNjc3OTQ3NGQxMDBjM2ZhNjA2MzU2YjgyIn0.QMfV-5q_tmgST_MFYPe89IFpkh1S8i9oEgzkEIvC_sU"  # Placeholder for the Kustomer API key
+load_dotenv()
+
+# ─────────────── CONFIG ────────────────────────────────────────────────
+KUSTOMER_API_KEY   = os.getenv('KUSTOMER_API_KEY')
 BASE_URL  = "https://my-jewellery.api.kustomerapp.com"
 START_DATE = "2025-06-01"   # inclusive
 END_DATE   = "2025-06-03"   # inclusive
@@ -17,7 +21,7 @@ start_iso = f"{START_DATE}T00:00:00Z"
 end_iso   = f"{END_DATE}T23:59:59Z"
 
 HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
+    "Authorization": f"Bearer {KUSTOMER_API_KEY}",
     "Content-Type": "application/json"
 }
 
