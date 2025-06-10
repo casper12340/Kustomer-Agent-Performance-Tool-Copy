@@ -9,7 +9,8 @@ Accurate Kustomer agent-performance export
 
 import csv, time, requests
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
+from copy import deepcopy
 from statistics import mean, median
 import os
 from dotenv import load_dotenv
@@ -61,6 +62,25 @@ def paginated_search(body: dict):
         total_pages = data.get("meta", {}).get("totalPages", total_pages)
         page += 1
 
+def search_by_day(base_body: dict, field: str):
+    """Split the search into per-day chunks to avoid large page counts."""
+    results = []
+    start = datetime.strptime(START_DATE, "%Y-%m-%d")
+    end = datetime.strptime(END_DATE, "%Y-%m-%d")
+    day = timedelta(days=1)
+    while start <= end:
+        day_start = f"{start.strftime('%Y-%m-%d')}T00:00:00Z"
+        day_end = f"{start.strftime('%Y-%m-%d')}T23:59:59Z"
+        body = deepcopy(base_body)
+        body["and"] = [
+            {field: {"gte": day_start}},
+            {field: {"lte": day_end}},
+            *[c for c in base_body.get("and", []) if field not in c],
+        ]
+        results.extend(paginated_search(body))
+        start += day
+    return results
+
 def dt(ts: str) -> datetime:  # quick ISO-8601 → datetime helper
     return datetime.strptime(ts.rstrip("Z"), "%Y-%m-%dT%H:%M:%S")
 
@@ -95,7 +115,7 @@ msg_body = {
     "timeZone": "Europe/Amsterdam",
 }
 print("Fetching outbound messages …")
-messages = list(paginated_search(msg_body))
+messages = search_by_day(msg_body, "createdAt")
 print(f"✔ {len(messages):,} messages")
 
 # ─────────────── 2) CONVERSATIONS (created & done) ─────────────────────
@@ -121,9 +141,9 @@ conv_done_body = {
 }
 
 print("Fetching conversations (created) …")
-conv_created = list(paginated_search(conv_created_body))
+conv_created = search_by_day(conv_created_body, "createdAt")
 print("Fetching conversations (done) …")
-conv_done = list(paginated_search(conv_done_body))
+conv_done = search_by_day(conv_done_body, "lastDoneAt")
 
 conv_lookup = {c["id"]: c for c in conv_created + conv_done}
 
@@ -138,7 +158,7 @@ user_time_body = {
     "timeZone": "Europe/Amsterdam",
 }
 print("Fetching user time …")
-user_times = list(paginated_search(user_time_body))
+user_times = search_by_day(user_time_body, "docAt")
 print(f"✔ {len(user_times):,} user time entries")
 
 # ─────────────── METRIC BUCKETS ────────────────────────────────────────
