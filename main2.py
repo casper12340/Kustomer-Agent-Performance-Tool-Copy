@@ -48,15 +48,17 @@ def request_retry(method: str, url: str, **kw):
 
 def paginated_search(body: dict):
     """POST /v1/customers/search paging with ?page=N&pageSize=…"""
-    # The Kustomer search API is zero-indexed. Start at page=0 to avoid
-    # requesting a page beyond the available range which would yield a 400.
+    # The Kustomer search API uses zero-indexed pages and returns the
+    # total number of pages in the response metadata. Track ``total_pages``
+    # so we never request past the last available page which would cause a
+    # 400 error.
     page = 0
-    while True:
+    total_pages = 1
+    while page < total_pages:
         url = f"{BASE_URL}/v1/customers/search?page={page}&pageSize={PAGE_SIZE}"
         data = request_retry("POST", url, json=body, headers=HEADERS).json()
         yield from data.get("data", [])
-        if page >= data.get("meta", {}).get("totalPages", 1) - 1:
-            break
+        total_pages = data.get("meta", {}).get("totalPages", total_pages)
         page += 1
 
 def dt(ts: str) -> datetime:  # quick ISO-8601 → datetime helper
