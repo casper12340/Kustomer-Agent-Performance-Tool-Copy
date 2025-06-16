@@ -1,6 +1,6 @@
-Agent,Messages sent,Unique conversations messaged,Conversations marked done,Unique customers messaged,Average conversation handle time (s),Average sent messages per conversation,Average sent messages per customer,First contact resolution rate (%),Average response time (s),Average first response time (s),Median first response time (s),Average time to first resolution (s),Median time to first resolution (s),Total time logged in (s),Messages sent with shortcuts,Percent of messages sent with shortcuts (%)
-Britt Caniels,53,46,0,46,0,1.15,1.15,0,4026920.57,0,0,0,0,0.0,0,0.0
-Sue-Ellen Janssen,186,53,0,53,0,3.51,3.51,0,3008422.84,0,0,0,0,0.0,0,0.0
-Roshni Gauri,160,52,0,52,0,3.08,3.08,0,2415797.31,0,0,0,0,0.0,0,0.0
-Carolijn Hanneman,126,89,0,89,0,1.42,1.42,0,10648393.98,0,0,0,0,0.0,0,0.0
-Caroll-Ann Karsodimedjo,81,46,0,46,0,1.76,1.76,0,4557335.49,0,0,0,0,0.0,0,0.0
+Agent/Team,Type,Messages sent,Unique conversations messaged,Conversations marked done,Unique customers messaged,Average conversation handle time (s),Average sent messages per conversation,Average sent messages per customer,First contact resolution rate (%),Average response time (s),Average first response time (s),Median first response time (s),Average time to first resolution (s),Median time to first resolution (s),Total time logged in (s),Messages sent with shortcuts,Percent of messages sent with shortcuts (%)
+Britt Caniels,User,53,46,0,46,208.91,1.15,1.15,5.13,4026920.57,0,0,1769528.72,166886,0.0,0,0.0
+Sue-Ellen Janssen,User,186,53,0,53,77.65,3.51,3.51,96.36,3008422.84,0,0,7724654.45,2590039,0.0,0,0.0
+Roshni Gauri,User,160,52,0,52,94.12,3.08,3.08,86.36,2415797.31,0,0,10519221.91,1315340.0,0.0,0,0.0
+Carolijn Hanneman,User,126,89,0,89,67,1.42,1.42,96.26,10648393.98,0,0,10068662.38,2052023,0.0,0,0.0
+Caroll-Ann Karsodimedjo,User,81,46,0,46,64.98,1.76,1.76,85.71,4557335.49,0,0,51589231.14,9414321,0.0,0,0.0

@@ -359,6 +359,8 @@ for ct in conv_times:
 print("Processing FCR...")
 for c in conv_first_done:
     # Try multiple ways to get firstDone data
+    attributess = c.get("attributes", {})
+
     first_done = c.get("firstDone", {})
     if not first_done:
         first_done = c.get("attributes", {}).get("firstDone", {})
@@ -372,6 +374,7 @@ for c in conv_first_done:
     if not first_done:
         continue
     
+    print(first_done)
     # Get agent ID from firstDone
     agent_id = None
     agent_type = None
